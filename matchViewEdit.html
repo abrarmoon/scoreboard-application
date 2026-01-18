@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit Match - Offline Cricket App</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;padding:20px;}
+h2{text-align:center;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+th,td{padding:8px;border:1px solid #555;text-align:center;}
+input{text-align:center;width:80px;padding:4px;border-radius:4px;border:none;background:#222;color:#fff;}
+button{padding:6px 12px;margin:8px;background:#006400;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+button:hover{opacity:0.85;}
+</style>
+</head>
+<body>
+
+<h2>Edit Match</h2>
+
+<h3>Team Info</h3>
+<label>Team Name: <input id="teamName" type="text"></label><br>
+
+<h3>Batting</h3>
+<table>
+<tr><th>Batsman</th><th>Runs</th><th>Balls</th></tr>
+<tr>
+<td><input id="b1Name" type="text"></td>
+<td><input id="b1Runs" type="number"></td>
+<td><input id="b1Balls" type="number"></td>
+</tr>
+<tr>
+<td><input id="b2Name" type="text"></td>
+<td><input id="b2Runs" type="number"></td>
+<td><input id="b2Balls" type="number"></td>
+</tr>
+</table>
+
+<h3>Bowling</h3>
+<table>
+<tr><th>Bowler</th><th>Runs</th><th>Wickets</th><th>Balls</th></tr>
+<tr>
+<td><input id="bowName" type="text"></td>
+<td><input id="bowlRuns" type="number"></td>
+<td><input id="bowlWk" type="number"></td>
+<td><input id="bowlBalls" type="number"></td>
+</tr>
+</table>
+
+<h3>Total Score</h3>
+<label>Total Runs: <input id="teamRuns" type="number"></label><br>
+<label>Wickets: <input id="teamWk" type="number"></label><br>
+
+<button onclick="saveMatchEdit()">Save</button>
+<button onclick="goBack()">Cancel</button>
+
+<script>
+let matchIndex = localStorage.getItem('currentMatchIndex');
+let matches = JSON.parse(localStorage.getItem('matches')||'[]');
+let match = matches[matchIndex];
+let currentTeam = parseInt(localStorage.getItem('currentTeam') || 1);
+let state = match.state || {teamName:match.team1,teamRuns:0,teamWk:0,bat1:{name:"Batsman1",runs:0,balls:0},bat2:{name:"Batsman2",runs:0,balls:0},bowler:{name:"Bowler",runs:0,wk:0,balls:0}};
+
+// Load values depending on currentTeam
+let teamNameValue = (currentTeam === 1) ? match.team1 : match.team2;
+document.getElementById('teamName').value = teamNameValue;
+document.getElementById('b1Name').value = state.bat1.name;
+document.getElementById('b1Runs').value = state.bat1.runs;
+document.getElementById('b1Balls').value = state.bat1.balls;
+document.getElementById('b2Name').value = state.bat2.name;
+document.getElementById('b2Runs').value = state.bat2.runs;
+document.getElementById('b2Balls').value = state.bat2.balls;
+document.getElementById('bowName').value = state.bowler.name;
+document.getElementById('bowlRuns').value = state.bowler.runs;
+document.getElementById('bowlWk').value = state.bowler.wk;
+document.getElementById('bowlBalls').value = state.bowler.balls;
+document.getElementById('teamRuns').value = state.teamRuns;
+document.getElementById('teamWk').value = state.teamWk;
+
+function saveMatchEdit(){
+    // Update team name
+    if(currentTeam === 1){
+        match.team1 = document.getElementById('teamName').value;
+    } else {
+        match.team2 = document.getElementById('teamName').value;
+    }
+
+    // Update state
+    state.bat1.name = document.getElementById('b1Name').value;
+    state.bat1.runs = parseInt(document.getElementById('b1Runs').value) || 0;
+    state.bat1.balls = parseInt(document.getElementById('b1Balls').value) || 0;
+    state.bat2.name = document.getElementById('b2Name').value;
+    state.bat2.runs = parseInt(document.getElementById('b2Runs').value) || 0;
+    state.bat2.balls = parseInt(document.getElementById('b2Balls').value) || 0;
+    state.bowler.name = document.getElementById('bowName').value;
+    state.bowler.runs = parseInt(document.getElementById('bowlRuns').value) || 0;
+    state.bowler.wk = parseInt(document.getElementById('bowlWk').value) || 0;
+    state.bowler.balls = parseInt(document.getElementById('bowlBalls').value) || 0;
+    state.teamRuns = parseInt(document.getElementById('teamRuns').value) || 0;
+    state.teamWk = parseInt(document.getElementById('teamWk').value) || 0;
+
+    match.state = state;
+    matches[matchIndex] = match;
+    localStorage.setItem('matches',JSON.stringify(matches));
+    alert("Match updated!");
+    window.location.href='matchView.html';
+}
+
+function goBack(){window.location.href='matchView.html';}
+</script>
+
+</body>
+</html>

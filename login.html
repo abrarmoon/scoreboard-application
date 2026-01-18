@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login - Offline Cricket App</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;}
+.container{max-width:400px;margin:100px auto;padding:20px;background:#222;border-radius:8px;}
+h2{text-align:center;margin-bottom:20px;}
+input,button{width:100%;padding:10px;margin:8px 0;border-radius:4px;border:none;}
+button{background:#006400;color:#fff;font-weight:bold;cursor:pointer;}
+button:hover{opacity:0.85;}
+#error{color:red;}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Login</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="error"></p>
+</div>
+
+<script>
+function login(){
+    const user=document.getElementById('username').value.trim();
+    const pass=document.getElementById('password').value.trim();
+    const error=document.getElementById('error');
+    if(user==='admin' && pass==='1234'){
+        window.location.href='dashboard.html';
+    }else{
+        error.innerText="Invalid Username or Password";
+    }
+}
+</script>
+</body>
+</html>

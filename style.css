@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+    background: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #fff;
+}
+
+/* TV SCOREBOARD */
+.tv-scoreboard {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    max-width: 1100px;
+    margin: 40px auto;
+    background: linear-gradient(90deg, #001219, #005f73);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* EACH COLUMN */
+.cell {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.cell:last-child {
+    border-right: none;
+}
+
+.label {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.value {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.score .value {
+    font-size: 26px;
+}
+
+.value small {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* CONTROL PANEL (DEV ONLY) */
+.controls {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.controls button {
+    padding: 8px 14px;
+    margin: 4px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

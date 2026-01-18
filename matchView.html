@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Match View - Offline Cricket App</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;padding:20px;}
+h2{text-align:center;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+th,td{padding:8px;border:1px solid #555;text-align:center;}
+button{padding:6px 12px;margin:8px;background:#006400;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+button:hover{opacity:0.85;}
+.team-buttons{display:flex;justify-content:center;margin-bottom:20px;}
+.team-buttons button{margin:0 10px;}
+.activeTeam{background:#228B22 !important;}
+</style>
+</head>
+<body>
+
+<h2>Match View</h2>
+
+<div id="matchHeader"></div>
+
+<div class="team-buttons">
+<button id="team1Btn" onclick="showTeam(1)">Team 1</button>
+<button id="team2Btn" onclick="showTeam(2)">Team 2</button>
+<button onclick="editMatch()">Edit</button>
+</div>
+
+<div id="matchInfo"></div>
+
+<button onclick="goBack()">Back to Dashboard</button>
+
+<script>
+let matchIndex = localStorage.getItem('currentMatchIndex');
+let matches = JSON.parse(localStorage.getItem('matches')||'[]');
+let match = matches[matchIndex];
+let currentTeam = parseInt(localStorage.getItem('currentTeam')||1);
+
+// Update header
+function updateHeader(){
+    document.getElementById('matchHeader').innerHTML = `<h3>${match.name}</h3>
+    <p><b>${match.team1}</b> vs <b>${match.team2}</b></p>`;
+}
+
+// Show selected team info
+function showTeam(teamNumber){
+    currentTeam = teamNumber;
+    localStorage.setItem('currentTeam', currentTeam);
+
+    // Highlight active team button
+    document.getElementById('team1Btn').classList.remove('activeTeam');
+    document.getElementById('team2Btn').classList.remove('activeTeam');
+    if(teamNumber===1) document.getElementById('team1Btn').classList.add('activeTeam');
+    else document.getElementById('team2Btn').classList.add('activeTeam');
+
+    let html = "";
+    if(match.state){
+        let s = match.state;
+        let teamName = (teamNumber===1)? match.team1 : match.team2;
+        html += `<h4>${teamName} Batting</h4>
+        <table>
+        <tr><th>Batsman</th><th>Runs</th><th>Balls</th></tr>
+        <tr><td>${s.bat1.name}</td><td>${s.bat1.runs}</td><td>${s.bat1.balls}</td></tr>
+        <tr><td>${s.bat2.name}</td><td>${s.bat2.runs}</td><td>${s.bat2.balls}</td></tr>
+        </table>
+        <h4>${s.bowler.name} Bowling</h4>
+        <table>
+        <tr><th>Bowler</th><th>Runs</th><th>Wickets</th><th>Balls</th></tr>
+        <tr><td>${s.bowler.name}</td><td>${s.bowler.runs}</td><td>${s.bowler.wk}</td><td>${s.bowler.balls}</td></tr>
+        </table>
+        <p><b>Total:</b> ${s.teamRuns}/${s.teamWk} (${Math.floor(s.balls/6)}.${s.balls%6}) overs</p>`;
+    } else {
+        html = "<p>No score yet.</p>";
+    }
+    document.getElementById('matchInfo').innerHTML = html;
+}
+
+// Edit button
+function editMatch(){
+    window.location.href='matchViewEdit.html';
+}
+
+// Back button
+function goBack(){window.location.href='dashboard.html';}
+
+// Initial load
+updateHeader();
+showTeam(currentTeam);
+</script>
+
+</body>
+</html>

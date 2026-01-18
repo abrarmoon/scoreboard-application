@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scoreboard - Offline Cricket App</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;}
+.tv-scoreboard{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;max-width:1100px;margin:25px auto;background:linear-gradient(90deg,#001219,#005f73);border-radius:8px;overflow:hidden;}
+.cell{padding:10px 14px;border-right:1px solid rgba(255,255,255,.25);}
+.cell:last-child{border-right:none}
+.label{font-size:12px;opacity:.8}
+.value{font-size:22px;font-weight:bold}
+.score .value{font-size:26px}
+.panel{max-width:1100px;margin:10px auto;background:#111;padding:12px;border-radius:8px;}
+.panel h3{margin:6px 0;font-size:15px}
+.panel button,.panel input{margin:4px;padding:6px 10px;}
+.extra-buttons{display:flex;flex-wrap:wrap;}
+.extra-buttons button{margin-right:6px;margin-bottom:4px;}
+.cell .value{padding:4px 6px;border-radius:4px;}
+.strike{background: linear-gradient(135deg, #006400, #004000);} 
+.nonstrike{background: linear-gradient(135deg, #8B0000, #4B0000);} 
+
+/* Current Match Name */
+#currentMatchName{color:#fff;text-align:center;font-size:18px;margin-top:10px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<div class="tv-scoreboard">
+<div class="cell score">
+<div class="label"><span id="teamLabel">Team</span></div>
+<div class="value">
+<span id="teamRuns">0</span>/<span id="teamWk">0</span>
+<small>(<span id="overs">0.0</span>)</small>
+</div>
+</div>
+<div class="cell" id="bat1Cell"><div class="label">BAT</div><div class="value" id="bat1View"></div></div>
+<div class="cell" id="bat2Cell"><div class="label">BAT</div><div class="value" id="bat2View"></div></div>
+<div class="cell"><div class="label">BOWL</div><div class="value" id="bowlView"></div></div>
+</div>
+
+<div class="panel">
+<h3>Score Control</h3>
+<div class="extra-buttons">
+<button onclick="selectMode('Normal')">Normal</button>
+<button onclick="selectMode('Wide')">Wide</button>
+<button onclick="selectMode('NoBall')">No Ball</button>
+<button onclick="selectMode('LegBye')">Leg Bye</button>
+<button onclick="addWicket()">Wicket</button>
+<button onclick="undo()">Undo</button>
+<button onclick="swapStrike()">Swap Sticker</button>
+</div>
+<div class="extra-buttons">
+<button onclick="addRunSmart(0)">0</button>
+<button onclick="addRunSmart(1)">1</button>
+<button onclick="addRunSmart(2)">2</button>
+<button onclick="addRunSmart(3)">3</button>
+<button onclick="addRunSmart(4)">4</button>
+<button onclick="addRunSmart(6)">6</button>
+</div>
+
+<!-- Current Match Name -->
+<div id="currentMatchName"></div>
+
+<h3>Change Names & Reset</h3>
+<input id="teamNameInput" placeholder="Team Name">
+<input id="b1Name" placeholder="Bat 1 Name">
+<input id="b2Name" placeholder="Bat 2 Name">
+<input id="bowName" placeholder="Next Bowler Name">
+<button onclick="updateNames()">Update</button>
+<button onclick="resetBowler()">Reset Bowler</button>
+<button onclick="resetTotalScore()">Reset Total Score</button>
+<button onclick="resetStrikeBatsman()">Reset Strike Batsman</button>
+<button onclick="resetNonStrikeBatsman()">Reset Non-Strike Batsman</button>
+
+<h3>Match Summary</h3>
+<button onclick="openScoreCard()">Score Card</button>
+
+</div>
+
+<script>
+let history=[];
+let mode='Normal';
+
+// ---------------- LOAD CURRENT MATCH ----------------
+let matchIndex = localStorage.getItem('currentMatchIndex');
+let matches = JSON.parse(localStorage.getItem('matches')||'[]');
+let match = matches[matchIndex] || {name:"Match 1", team1:"Team1", team2:"Team2"};
+
+// ---------------- INIT TEAM/BATSMEN ----------------
+let teamName=match.team1;
+let teamRuns=0,teamWk=0,balls=0;
+let bat1={name:"Batsman1",runs:0,balls:0,strike:true};
+let bat2={name:"Batsman2",runs:0,balls:0,strike:false};
+let bowler={name:"Bowler",runs:0,wk:0,balls:0};
+
+function saveState(){
+    match.state={teamName,teamRuns,teamWk,balls,bat1,bat2,bowler};
+    matches[matchIndex]=match;
+    localStorage.setItem('matches',JSON.stringify(matches));
+}
+
+// ---------------- UI ----------------
+function oversText(b){return Math.floor(b/6)+"."+b%6;}
+function updateUI(){
+    document.getElementById("teamLabel").innerText=teamName;
+    document.getElementById("teamRuns").innerText=teamRuns;
+    document.getElementById("teamWk").innerText=teamWk;
+    document.getElementById("overs").innerText=oversText(balls);
+    document.getElementById("bat1View").innerText=bat1.name+" "+bat1.runs+"("+bat1.balls+")";
+    document.getElementById("bat2View").innerText=bat2.name+" "+bat2.runs+"("+bat2.balls+")";
+    document.getElementById("bowlView").innerText=bowler.name+" "+bowler.wk+"-"+bowler.runs+" ("+oversText(bowler.balls)+")";
+    document.getElementById("bat1Cell").className="cell "+(bat1.strike?"strike":"nonstrike");
+    document.getElementById("bat2Cell").className="cell "+(bat2.strike?"strike":"nonstrike");
+
+    // Show Current Match Name
+    document.getElementById("currentMatchName").innerText = "Current Match: " + match.name;
+
+    saveState();
+}
+
+// ---------------- LOGIC ----------------
+function switchStrike(){bat1.strike=!bat1.strike;bat2.strike=!bat2.strike; updateUI();}
+function swapStrike(){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); switchStrike();}
+function resetBowler(){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); bowler.runs=0; bowler.balls=0; bowler.wk=0; updateUI();}
+function resetTotalScore(){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); teamRuns=0; teamWk=0; balls=0; updateUI();}
+function resetStrikeBatsman(){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); let s=bat1.strike?bat1:bat2; s.runs=0; s.balls=0; updateUI();}
+function resetNonStrikeBatsman(){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); let ns=bat1.strike?bat2:bat1; ns.runs=0; ns.balls=0; updateUI();}
+function checkNewOver(){if(bowler.balls>0 && bowler.balls%6===0) switchStrike();}
+function selectMode(m){mode=m;}
+function addRunSmart(r){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); let striker=bat1.strike?bat1:bat2; if(mode==='Normal'){teamRuns+=r; balls++; bowler.runs+=r; bowler.balls++; striker.runs+=r; striker.balls++; if(r%2===1) switchStrike();} else if(mode==='Wide'){teamRuns+=1+r; if(r%2===1) switchStrike();} else if(mode==='NoBall'){teamRuns+=1+r; bowler.runs+=r; if(r%2===1) switchStrike();} else if(mode==='LegBye'){teamRuns+=r; balls++; bowler.balls++; striker.balls++; if(r%2===1) switchStrike();} checkNewOver(); updateUI();}
+function addWicket(){history.push(JSON.stringify({teamRuns,teamWk,balls,bat1,bat2,bowler})); teamWk++; balls++; bowler.wk++; bowler.balls++; let s=bat1.strike?bat1:bat2; s.runs=0; s.balls=0; s.name="New Bat"; checkNewOver(); updateUI();}
+function undo(){if(!history.length) return; let s=JSON.parse(history.pop()); ({teamRuns,teamWk,balls,bat1,bat2,bowler}=s); updateUI();}
+function updateNames(){if(teamNameInput.value) teamName=teamNameInput.value;if(b1Name.value) bat1.name=b1Name.value;if(b2Name.value) bat2.name=b2Name.value;if(bowName.value) bowler.name=bowName.value; updateUI();}
+
+// ---------------- SCORE CARD BUTTON ----------------
+function openScoreCard(){window.location.href='scorecard.html';}
+
+// Load previous state if available
+if(match.state){({teamName,teamRuns,teamWk,balls,bat1,bat2,bowler}=match.state);}
+updateUI();
+</script>
+
+</body>
+</html>
